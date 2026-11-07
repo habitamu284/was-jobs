@@ -1,0 +1,6 @@
+{
+  "name": "WAS Jobs Ethiopia - ዋስ ስራ",
+  "description": "Ethiopia's modern mobile-first job marketplace connecting job seekers and employers in Amharic and English.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

@@ -1,7 +1,9 @@
-import { Router, Response } from 'express';
+import { Router } from 'express';
+import type { Response } from 'express';
 import { db } from '../db.ts';
-import { AuthenticatedRequest, requireAuth, requireRole } from '../auth.ts';
-import { PaymentTransaction } from '../../src/types/index.ts';
+import { requireAuth, requireRole } from '../auth.ts';
+import type { AuthenticatedRequest } from '../auth.ts';
+import type { PaymentTransaction } from '../../src/types/index.ts';
 
 const router = Router();
 

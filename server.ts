@@ -1,4 +1,5 @@
 import express from 'express';
+import fs from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
 import dotenv from 'dotenv';
@@ -13,6 +14,7 @@ import notificationsRoutes from './server/routes/notifications.ts';
 import reportsRoutes from './server/routes/reports.ts';
 import paymentsRoutes from './server/routes/payments.ts';
 import statsRoutes from './server/routes/stats.ts';
+import { db } from './server/db.ts';
 
 dotenv.config();
 
@@ -23,6 +25,13 @@ async function startServer() {
   const app = express();
   const PORT = process.env.PORT ? parseInt(process.env.PORT, 10) : 3000;
   const isProd = process.env.NODE_ENV === 'production';
+
+  // Initialize remote PostgreSQL cloud database if DATABASE_URL is configured
+  await db.initPostgres();
+
+  // Securely resolve client IP behind reverse proxy (Render, Cloud Run, Nginx)
+  // This prevents untrusted client-injected X-Forwarded-For headers from spoofing rate limiting
+  app.set('trust proxy', 1);
 
   // Body parsers
   app.use(express.json({ limit: '10mb' }));
@@ -55,6 +64,50 @@ async function startServer() {
   // Health check
   app.get('/api/health', (_req, res) => {
     res.json({ status: 'ok', platform: 'WAS Jobs Ethiopia (ዋስ ስራ)', timestamp: new Date().toISOString() });
+  });
+
+  // Direct ZIP package download endpoint
+  app.get('/download-zip', (_req, res) => {
+    const publicZip = path.resolve(__dirname, 'public', 'was-jobs-ethiopia.zip');
+    if (fs.existsSync(publicZip)) {
+      res.setHeader('Content-Type', 'application/zip');
+      res.setHeader('Content-Disposition', 'attachment; filename="was-jobs-ethiopia.zip"');
+      return res.sendFile(publicZip);
+    }
+    const rootZip = path.resolve(__dirname, 'was-jobs-ethiopia.zip');
+    if (fs.existsSync(rootZip)) {
+      res.setHeader('Content-Type', 'application/zip');
+      res.setHeader('Content-Disposition', 'attachment; filename="was-jobs-ethiopia.zip"');
+      return res.sendFile(rootZip);
+    }
+    res.status(404).send('ZIP file not found');
+  });
+
+  // Dynamic sitemap.xml for Google & search engines
+  app.get('/sitemap.xml', (_req, res) => {
+    const jobs = db.get().jobs.filter((j) => j.status === 'active');
+    const baseUrl = 'https://was-jobs.onrender.com';
+    const urls = [
+      `  <url>\n    <loc>${baseUrl}/</loc>\n    <changefreq>daily</changefreq>\n    <priority>1.0</priority>\n  </url>`,
+      `  <url>\n    <loc>${baseUrl}/#jobs</loc>\n    <changefreq>hourly</changefreq>\n    <priority>0.9</priority>\n  </url>`,
+    ];
+
+    jobs.forEach((job) => {
+      const lastMod = job.updatedAt ? job.updatedAt.split('T')[0] : new Date().toISOString().split('T')[0];
+      urls.push(
+        `  <url>\n    <loc>${baseUrl}/?job=${job.id}</loc>\n    <lastmod>${lastMod}</lastmod>\n    <changefreq>daily</changefreq>\n    <priority>0.8</priority>\n  </url>`
+      );
+    });
+
+    const sitemap = `<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n${urls.join('\n')}\n</urlset>`;
+    res.header('Content-Type', 'application/xml');
+    res.send(sitemap);
+  });
+
+  // Dynamic robots.txt
+  app.get('/robots.txt', (_req, res) => {
+    res.type('text/plain');
+    res.send(`User-agent: *\nAllow: /\nAllow: /api/jobs\nDisallow: /api/admin\nDisallow: /api/uploads/cvs/\n\nSitemap: https://was-jobs.onrender.com/sitemap.xml\n`);
   });
 
   // Frontend integration (Vite dev server or static build)

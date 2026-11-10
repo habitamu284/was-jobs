@@ -3,6 +3,7 @@ import { X, Flag, CheckCircle, AlertCircle } from 'lucide-react';
 import { Job } from '../types/index.ts';
 import { useLanguage } from '../context/LanguageContext.tsx';
 import { useAuth } from '../context/AuthContext.tsx';
+import { safeJsonFetch } from '../utils/api.ts';
 
 interface ReportModalProps {
   job: Job;
@@ -51,9 +52,9 @@ export const ReportModal: React.FC<ReportModalProps> = ({ job, isOpen, onClose }
         }),
       });
 
-      const data = await res.json();
-      if (!res.ok) {
-        throw new Error(data.error || 'Failed to submit report');
+      const parsed = await safeJsonFetch(res, 'Failed to submit report');
+      if (!parsed.ok || !parsed.data) {
+        throw new Error(parsed.error || 'Failed to submit report');
       }
 
       setSuccess(true);

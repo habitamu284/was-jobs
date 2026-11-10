@@ -21,6 +21,7 @@ import {
 import { Job, Company, JobApplication, ApplicationStatus, JobStatus } from '../types/index.ts';
 import { useLanguage } from '../context/LanguageContext.tsx';
 import { useAuth } from '../context/AuthContext.tsx';
+import { safeJsonFetch } from '../utils/api.ts';
 
 interface EmployerDashboardProps {
   onPostJob: () => void;
@@ -67,19 +68,21 @@ export const EmployerDashboard: React.FC<EmployerDashboardProps> = ({
     setLoading(true);
     try {
       const res = await authFetch('/api/jobs?employerOnly=true');
-      if (res.ok) {
-        const data = await res.json();
-        setMyJobs(data.jobs || []);
+      const parsed = await safeJsonFetch<{ jobs: Job[] }>(res);
+      if (parsed.ok && parsed.data) {
+        setMyJobs(parsed.data.jobs || []);
 
         // Also fetch all applications for employer's jobs
-        const jobIds = (data.jobs || []).map((j: Job) => j.id);
+        const jobIds = (parsed.data.jobs || []).map((j: Job) => j.id);
         const appsPromises = jobIds.map((id: string) =>
-          authFetch(`/api/applications/job/${id}`).then((r) => (r.ok ? r.json() : { applications: [] }))
+          authFetch(`/api/applications/job/${id}`)
+            .then((r) => safeJsonFetch<{ applications: JobApplication[] }>(r))
+            .then((p) => p.data?.applications || [])
         );
         const appsResults = await Promise.all(appsPromises);
         const allEmployerApps: JobApplication[] = [];
-        appsResults.forEach((r) => {
-          if (r.applications) allEmployerApps.push(...r.applications);
+        appsResults.forEach((apps) => {
+          if (apps) allEmployerApps.push(...apps);
         });
         setApplications(allEmployerApps);
       }
@@ -166,12 +169,13 @@ export const EmployerDashboard: React.FC<EmployerDashboardProps> = ({
           employerNotes,
         }),
       });
-      if (res.ok) {
-        const data = await res.json();
+      const parsed = await safeJsonFetch<{ application: JobApplication }>(res);
+      if (parsed.ok && parsed.data) {
+        const updated = parsed.data.application;
         setApplications((prev) =>
-          prev.map((a) => (a.id === reviewingApp.id ? data.application : a))
+          prev.map((a) => (a.id === reviewingApp.id ? updated : a))
         );
-        setReviewingApp(data.application);
+        setReviewingApp(updated);
         setStatusUpdateSuccessMsg(lang === 'am' ? 'የአመልካቹ ሁኔታ ተዘምኗል! ማሳወቂያ ለስራ ፈላጊው ተልኳል።' : 'Status updated! Notification sent to applicant.');
       }
     } catch (err) {

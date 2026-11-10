@@ -19,6 +19,7 @@ import {
 import { Job, User, JobReport, JobStatus, PaymentTransaction } from '../types/index.ts';
 import { useLanguage } from '../context/LanguageContext.tsx';
 import { useAuth } from '../context/AuthContext.tsx';
+import { safeJsonFetch } from '../utils/api.ts';
 
 interface AdminDashboardProps {
   openPaymentModal: () => void;
@@ -57,23 +58,19 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
         authFetch('/api/payments/admin-transactions'),
       ]);
 
-      if (statsRes && statsRes.ok) setStats(await statsRes.json());
-      if (jobsRes && jobsRes.ok) {
-        const jData = await jobsRes.json();
-        setAllJobs(jData.jobs || []);
-      }
-      if (usersRes && usersRes.ok) {
-        const uData = await usersRes.json();
-        setAllUsers(uData.users || []);
-      }
-      if (reportsRes && reportsRes.ok) {
-        const rData = await reportsRes.json();
-        setAllReports(rData.reports || []);
-      }
-      if (paymentsRes && paymentsRes.ok) {
-        const pData = await paymentsRes.json();
-        setAllPayments(pData.transactions || []);
-      }
+      const [statsParsed, jobsParsed, usersParsed, reportsParsed, paymentsParsed] = await Promise.all([
+        safeJsonFetch<any>(statsRes),
+        safeJsonFetch<{ jobs: Job[] }>(jobsRes),
+        safeJsonFetch<{ users: User[] }>(usersRes),
+        safeJsonFetch<{ reports: JobReport[] }>(reportsRes),
+        safeJsonFetch<{ transactions: PaymentTransaction[] }>(paymentsRes),
+      ]);
+
+      if (statsParsed.ok && statsParsed.data) setStats(statsParsed.data);
+      if (jobsParsed.ok && jobsParsed.data?.jobs) setAllJobs(jobsParsed.data.jobs);
+      if (usersParsed.ok && usersParsed.data?.users) setAllUsers(usersParsed.data.users);
+      if (reportsParsed.ok && reportsParsed.data?.reports) setAllReports(reportsParsed.data.reports);
+      if (paymentsParsed.ok && paymentsParsed.data?.transactions) setAllPayments(paymentsParsed.data.transactions);
     } catch (err) {
       // Gracefully handle transient network errors
     } finally {
@@ -91,10 +88,11 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ status, adminNotes }),
       });
-      if (res.ok) {
-        const data = await res.json();
+      const parsed = await safeJsonFetch<{ transaction: PaymentTransaction }>(res);
+      if (parsed.ok && parsed.data) {
+        const updated = parsed.data.transaction;
         setAllPayments((prev) =>
-          prev.map((p) => (p.id === paymentId ? data.transaction : p))
+          prev.map((p) => (p.id === paymentId ? updated : p))
         );
         setPaymentActionMsg(
           status === 'verified'

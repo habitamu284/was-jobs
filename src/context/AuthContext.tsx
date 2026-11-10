@@ -1,5 +1,6 @@
 import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
 import { User, Company, UserRole } from '../types/index.ts';
+import { safeJsonFetch } from '../utils/api.ts';
 
 interface AuthContextType {
   user: User | null;
@@ -37,6 +38,10 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     [token]
   );
 
+async function parseJsonResponse(res: Response): Promise<{ ok: boolean; data: any; error?: string }> {
+  return safeJsonFetch(res);
+}
+
   const refreshUser = useCallback(async () => {
     const activeToken = localStorage.getItem('was_jobs_token');
     if (!activeToken) {
@@ -50,10 +55,10 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       const res = await fetch('/api/auth/me', {
         headers: { Authorization: `Bearer ${activeToken}` },
       });
-      if (res.ok) {
-        const data = await res.json();
-        setUser(data.user);
-        setCompany(data.company || null);
+      const parsed = await parseJsonResponse(res);
+      if (parsed.ok && parsed.data) {
+        setUser(parsed.data.user);
+        setCompany(parsed.data.company || null);
       } else {
         localStorage.removeItem('was_jobs_token');
         setToken(null);
@@ -78,14 +83,14 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email, password }),
       });
-      const data = await res.json();
-      if (!res.ok) {
-        return { success: false, error: data.error || 'Login failed' };
+      const parsed = await parseJsonResponse(res);
+      if (!parsed.ok || !parsed.data) {
+        return { success: false, error: parsed.error || 'Login failed' };
       }
-      localStorage.setItem('was_jobs_token', data.token);
-      setToken(data.token);
-      setUser(data.user);
-      setCompany(data.company || null);
+      localStorage.setItem('was_jobs_token', parsed.data.token);
+      setToken(parsed.data.token);
+      setUser(parsed.data.user);
+      setCompany(parsed.data.company || null);
       return { success: true };
     } catch (err: any) {
       return { success: false, error: err.message || 'Network error' };
@@ -99,14 +104,14 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(formData),
       });
-      const data = await res.json();
-      if (!res.ok) {
-        return { success: false, error: data.error || 'Registration failed' };
+      const parsed = await parseJsonResponse(res);
+      if (!parsed.ok || !parsed.data) {
+        return { success: false, error: parsed.error || 'Registration failed' };
       }
-      localStorage.setItem('was_jobs_token', data.token);
-      setToken(data.token);
-      setUser(data.user);
-      setCompany(data.company || null);
+      localStorage.setItem('was_jobs_token', parsed.data.token);
+      setToken(parsed.data.token);
+      setUser(parsed.data.user);
+      setCompany(parsed.data.company || null);
       return { success: true };
     } catch (err: any) {
       return { success: false, error: err.message || 'Network error' };
@@ -120,14 +125,14 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ role }),
       });
-      const data = await res.json();
-      if (!res.ok) {
-        return { success: false, error: data.error || 'Demo login failed' };
+      const parsed = await parseJsonResponse(res);
+      if (!parsed.ok || !parsed.data) {
+        return { success: false, error: parsed.error || 'Demo login failed' };
       }
-      localStorage.setItem('was_jobs_token', data.token);
-      setToken(data.token);
-      setUser(data.user);
-      setCompany(data.company || null);
+      localStorage.setItem('was_jobs_token', parsed.data.token);
+      setToken(parsed.data.token);
+      setUser(parsed.data.user);
+      setCompany(parsed.data.company || null);
       return { success: true };
     } catch (err: any) {
       return { success: false, error: err.message || 'Network error' };
@@ -148,11 +153,11 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(profileData),
       });
-      const data = await res.json();
-      if (!res.ok) {
-        return { success: false, error: data.error || 'Update failed' };
+      const parsed = await safeJsonFetch(res);
+      if (!parsed.ok || !parsed.data) {
+        return { success: false, error: parsed.error || 'Update failed' };
       }
-      setUser(data.user);
+      setUser(parsed.data.user);
       return { success: true };
     } catch (err: any) {
       return { success: false, error: err.message || 'Network error' };
@@ -166,11 +171,11 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(companyData),
       });
-      const data = await res.json();
-      if (!res.ok) {
-        return { success: false, error: data.error || 'Update failed' };
+      const parsed = await safeJsonFetch(res);
+      if (!parsed.ok || !parsed.data) {
+        return { success: false, error: parsed.error || 'Update failed' };
       }
-      setCompany(data.company);
+      setCompany(parsed.data.company);
       return { success: true };
     } catch (err: any) {
       return { success: false, error: err.message || 'Network error' };

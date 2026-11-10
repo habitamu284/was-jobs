@@ -1,10 +1,12 @@
-import { Router, Response } from 'express';
+import { Router } from 'express';
+import type { Response } from 'express';
 import multer from 'multer';
 import path from 'path';
 import fs from 'fs';
 import { db, CVS_DIR } from '../db.ts';
-import { AuthenticatedRequest, requireAuth, requireRole } from '../auth.ts';
-import { User } from '../../src/types/index.ts';
+import { requireAuth, requireRole, getFounderAdminEmail } from '../auth.ts';
+import type { AuthenticatedRequest } from '../auth.ts';
+import type { User } from '../../src/types/index.ts';
 
 const router = Router();
 
@@ -40,7 +42,7 @@ router.get('/profile', requireAuth, (req: AuthenticatedRequest, res: Response) =
   if (!user) {
     return res.status(404).json({ error: 'User not found' });
   }
-  const { passwordHash: _, ...safeUser } = user;
+  const { passwordHash: _, cvBase64: __, ...safeUser } = user;
   const company = db.get().companies.find((c) => c.userId === user.id);
   res.json({ user: safeUser, company });
 });
@@ -87,7 +89,7 @@ router.put('/profile', requireAuth, (req: AuthenticatedRequest, res: Response) =
   });
 
   const updatedUser = db.get().users.find((u) => u.id === req.user!.id);
-  const { passwordHash: _, ...safeUser } = updatedUser!;
+  const { passwordHash: _, cvBase64: __, ...safeUser } = updatedUser!;
   res.json({ message: 'Profile updated successfully. መገለጫዎ ተዘምኗል።', user: safeUser });
 });
 
@@ -100,12 +102,22 @@ router.post('/upload-cv', requireAuth, upload.single('cv'), (req: AuthenticatedR
   const fileUrl = `/api/uploads/cvs/${req.file.filename}`;
   const originalName = req.file.originalname;
 
+  let cvBase64: string | undefined;
+  try {
+    cvBase64 = fs.readFileSync(req.file.path).toString('base64');
+  } catch (err) {
+    console.error('Failed to encode CV base64 backup:', err);
+  }
+
   db.update((database) => {
     const user = database.users.find((u) => u.id === req.user!.id);
     if (user) {
       user.cvFileName = req.file!.filename;
       user.cvOriginalName = originalName;
       user.cvUrl = fileUrl;
+      if (cvBase64) {
+        user.cvBase64 = cvBase64;
+      }
       user.updatedAt = new Date().toISOString();
     }
   });
@@ -118,13 +130,27 @@ router.post('/upload-cv', requireAuth, upload.single('cv'), (req: AuthenticatedR
   });
 });
 
-// Protected CV file download endpoint
+// Protected CV file download endpoint with auto-recovery from database backup
 router.get('/cvs/:filename', requireAuth, (req: AuthenticatedRequest, res: Response) => {
   const filename = path.basename(req.params.filename);
   const filePath = path.resolve(CVS_DIR, filename);
 
   if (!fs.existsSync(filePath)) {
-    return res.status(404).send('CV file not found.');
+    // Attempt auto-recovery from database backup
+    const seeker = db.get().users.find((u) => u.cvFileName === filename && u.cvBase64);
+    if (seeker && seeker.cvBase64) {
+      try {
+        if (!fs.existsSync(CVS_DIR)) {
+          fs.mkdirSync(CVS_DIR, { recursive: true });
+        }
+        fs.writeFileSync(filePath, Buffer.from(seeker.cvBase64, 'base64'));
+      } catch (err) {
+        console.error('Failed to restore CV from backup:', err);
+        return res.status(500).send('Failed to restore CV file.');
+      }
+    } else {
+      return res.status(404).send('CV file not found.');
+    }
   }
 
   const currentUser = req.user!;
@@ -181,6 +207,14 @@ router.patch('/:id/role', requireRole('admin'), (req: AuthenticatedRequest, res:
     return res.status(400).json({ error: 'Invalid role.' });
   }
 
+  // CRITICAL SECURITY RULE: Only the platform founder can grant administrator status
+  const founderEmail = getFounderAdminEmail();
+  if (role === 'admin' && req.user!.email.toLowerCase() !== founderEmail) {
+    return res.status(403).json({
+      error: 'Security Policy: Only the primary platform founder can assign Administrator status.',
+    });
+  }
+
   db.update((database) => {
     const user = database.users.find((u) => u.id === userId);
     if (user) {
@@ -190,6 +224,31 @@ router.patch('/:id/role', requireRole('admin'), (req: AuthenticatedRequest, res:
   });
 
   res.json({ message: `User role updated to ${role}.` });
+});
+
+// Admin: Delete/Remove user (e.g. fraudulent, spam or abusive accounts)
+router.delete('/:id', requireRole('admin'), (req: AuthenticatedRequest, res: Response) => {
+  const userId = req.params.id;
+  const user = db.get().users.find((u) => u.id === userId);
+
+  if (!user) {
+    return res.status(404).json({ error: 'User not found. ተጠቃሚው አልተገኘም።' });
+  }
+
+  const founderEmail = getFounderAdminEmail();
+  if (user.email.toLowerCase() === founderEmail || user.id === 'usr_admin_1') {
+    return res.status(403).json({ error: 'Cannot delete platform founder and primary administrator.' });
+  }
+
+  db.update((database) => {
+    database.users = database.users.filter((u) => u.id !== userId);
+    database.companies = database.companies.filter((c) => c.userId !== userId);
+    database.applications = database.applications.filter((a) => a.seekerId !== userId);
+    database.savedJobs = database.savedJobs.filter((s) => s.userId !== userId);
+    database.notifications = database.notifications.filter((n) => n.userId !== userId);
+  });
+
+  res.json({ message: 'User account removed successfully. የተጠቃሚው አካውንት በተሳካ ሁኔታ ተሰርዟል።' });
 });
 
 export default router;

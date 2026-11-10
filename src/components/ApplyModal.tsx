@@ -3,6 +3,7 @@ import { X, Upload, FileText, CheckCircle2, AlertCircle, Send, Check } from 'luc
 import { Job } from '../types/index.ts';
 import { useLanguage } from '../context/LanguageContext.tsx';
 import { useAuth } from '../context/AuthContext.tsx';
+import { safeJsonFetch } from '../utils/api.ts';
 
 interface ApplyModalProps {
   job: Job;
@@ -52,13 +53,13 @@ export const ApplyModal: React.FC<ApplyModalProps> = ({ job, isOpen, onClose, on
           body: formData,
         });
 
-        const uploadData = await uploadRes.json();
-        if (!uploadRes.ok) {
-          throw new Error(uploadData.error || 'Failed to upload CV');
+        const uploadParsed = await safeJsonFetch(uploadRes, 'Failed to upload CV');
+        if (!uploadParsed.ok || !uploadParsed.data) {
+          throw new Error(uploadParsed.error || 'Failed to upload CV');
         }
 
-        finalCvUrl = uploadData.cvUrl;
-        finalCvName = uploadData.cvOriginalName;
+        finalCvUrl = uploadParsed.data.cvUrl;
+        finalCvName = uploadParsed.data.cvOriginalName;
       }
 
       if (!finalCvUrl) {
@@ -81,9 +82,9 @@ export const ApplyModal: React.FC<ApplyModalProps> = ({ job, isOpen, onClose, on
         }),
       });
 
-      const data = await res.json();
-      if (!res.ok) {
-        throw new Error(data.error || 'Failed to submit application');
+      const parsed = await safeJsonFetch(res, 'Failed to submit application');
+      if (!parsed.ok || !parsed.data) {
+        throw new Error(parsed.error || 'Failed to submit application');
       }
 
       setSuccess(true);

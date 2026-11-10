@@ -67,12 +67,18 @@ export const Navbar: React.FC<NavbarProps> = ({
           </span>
         </div>
 
-        {/* Administrator Fast Access */}
+        {/* Administrator Access */}
         <div>
           <button
-            onClick={() => handleDemoSwitch('admin')}
+            onClick={() => {
+              if (user?.role === 'admin') {
+                setActiveTab('admin');
+              } else {
+                openAuthModal('login');
+              }
+            }}
             className="flex items-center gap-1.5 bg-black/30 hover:bg-black/50 text-[11px] font-semibold px-2.5 py-0.5 rounded transition"
-            title="Administrator Fast Access (ሀብታሙ ጌታቸው)"
+            title="Administrator Access (ሀብታሙ ጌታቸው)"
           >
             <Shield className="w-3.5 h-3.5 text-amber-300" />
             <span>

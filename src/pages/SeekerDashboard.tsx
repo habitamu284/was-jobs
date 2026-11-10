@@ -17,6 +17,7 @@ import {
 import { JobApplication, Job, ApplicationStatus } from '../types/index.ts';
 import { useLanguage } from '../context/LanguageContext.tsx';
 import { useAuth } from '../context/AuthContext.tsx';
+import { safeJsonFetch } from '../utils/api.ts';
 import { JobCard } from '../components/JobCard.tsx';
 
 interface SeekerDashboardProps {
@@ -52,14 +53,17 @@ export const SeekerDashboard: React.FC<SeekerDashboardProps> = ({
         authFetch('/api/saved-jobs'),
       ]);
 
-      if (appsRes.ok) {
-        const appsData = await appsRes.json();
-        setApplications(appsData.applications || []);
+      const [appsParsed, savedParsed] = await Promise.all([
+        safeJsonFetch<{ applications: JobApplication[] }>(appsRes),
+        safeJsonFetch<{ savedJobs: Job[] }>(savedRes),
+      ]);
+
+      if (appsParsed.ok && appsParsed.data?.applications) {
+        setApplications(appsParsed.data.applications);
       }
 
-      if (savedRes.ok) {
-        const savedData = await savedRes.json();
-        setSavedJobs(savedData.savedJobs || []);
+      if (savedParsed.ok && savedParsed.data?.savedJobs) {
+        setSavedJobs(savedParsed.data.savedJobs);
       }
     } catch (err) {
       console.error(err);
@@ -86,12 +90,12 @@ export const SeekerDashboard: React.FC<SeekerDashboardProps> = ({
         method: 'POST',
         body: formData,
       });
-      const data = await res.json();
-      if (res.ok) {
+      const parsed = await safeJsonFetch(res, 'Failed to upload CV');
+      if (parsed.ok && parsed.data) {
         setCvSuccessMsg(lang === 'am' ? 'ሲቪዎ በተሳካ ሁኔታ ተጭኗል!' : 'CV uploaded successfully!');
         await refreshUser();
       } else {
-        setCvErrorMsg(data.error || 'Failed to upload CV');
+        setCvErrorMsg(parsed.error || 'Failed to upload CV');
       }
     } catch (err: any) {
       setCvErrorMsg(err.message || 'Error uploading file');

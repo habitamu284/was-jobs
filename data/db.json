@@ -3,7 +3,7 @@
     {
       "id": "usr_admin_1",
       "email": "habitegechewe@gmail.com",
-      "passwordHash": "fb2f3d44976bff9ded2e75f55cddc9c45c08a933928e04b535a45490e322a3e1",
+      "passwordHash": "$2b$10$X5THlbesbFrUCTSLEltEDerBeITy1poSrakxjkzTVTTsOWiZ.Jdlm",
       "fullName": "ሀብታሙ ጌታቸው (Habitamu Getachew)",
       "role": "admin",
       "phone": "0966087039",
@@ -19,74 +19,33 @@
       "updatedAt": "2026-01-01T08:00:00.000Z"
     },
     {
-      "id": "usr_1793992490419_anixte",
-      "email": "seeker.audit@wasjobs.et",
-      "passwordHash": "24f54a4cd43cde96c9f190fa7b03ab2a053245da3dbca58177274b2f1ce39442",
-      "fullName": "Test Seeker",
+      "id": "usr_1794122822079_44rfl4",
+      "email": "habite531@gmail.com",
+      "passwordHash": "0f5dc97fd6e803b099be2c0c626f6779aa002fa286f17cbc9cd1f36d2400e734",
+      "fullName": "Habite gechewe",
       "role": "seeker",
-      "phone": "0911000000",
+      "phone": "0966087039",
       "location": "Addis Ababa",
       "skills": [],
-      "createdAt": "2026-11-06T19:14:50.419Z",
-      "updatedAt": "2026-11-06T19:14:50.419Z"
-    },
-    {
-      "id": "usr_1793992490427_u99b70",
-      "email": "employer.audit@wasjobs.et",
-      "passwordHash": "24f54a4cd43cde96c9f190fa7b03ab2a053245da3dbca58177274b2f1ce39442",
-      "fullName": "Test Employer",
-      "role": "employer",
-      "phone": "0922000000",
-      "location": "Addis Ababa",
-      "skills": [],
-      "createdAt": "2026-11-06T19:14:50.427Z",
-      "updatedAt": "2026-11-06T19:14:50.427Z"
+      "createdAt": "2026-11-08T07:27:02.079Z",
+      "updatedAt": "2026-11-08T07:27:02.079Z"
     }
   ],
   "companies": [
     {
-      "id": "cmp_1793992490427_q0lla",
-      "userId": "usr_1793992490427_u99b70",
-      "companyName": "Audit Corp Ethiopia",
-      "industry": "Technology",
-      "phone": "0922000000",
-      "email": "employer.audit@wasjobs.et",
+      "id": "cmp_was_official",
+      "userId": "usr_admin_1",
+      "companyName": "WAS Jobs Official (ዋስ ስራ)",
+      "industry": "Technology & Human Resources",
+      "phone": "0966087039",
+      "email": "habitegechewe@gmail.com",
       "location": "Addis Ababa",
-      "description": "New verified business on WAS Jobs Ethiopia.",
-      "verified": false,
-      "createdAt": "2026-11-06T19:14:50.427Z"
+      "description": "Official WAS Jobs verified recruitment and placement desk.",
+      "verified": true,
+      "createdAt": "2026-01-01T08:00:00.000Z"
     }
   ],
-  "jobs": [
-    {
-      "id": "job_1793992490436_ro3x6",
-      "employerId": "cmp_1793992490427_q0lla",
-      "companyName": "Audit Corp Ethiopia",
-      "title": "Audit Test Software Engineer",
-      "description": "Testing end-to-end job posting and application flow.",
-      "location": "Addis Ababa, Bole",
-      "category": "Technology",
-      "salaryMin": 25000,
-      "salaryMax": 45000,
-      "salaryCurrency": "ETB",
-      "salaryPeriod": "monthly",
-      "isNegotiableSalary": false,
-      "employmentType": "full_time",
-      "requiredQualifications": [
-        "TypeScript",
-        "Node.js"
-      ],
-      "applicationDeadline": "2026-12-31",
-      "contactEmail": "employer.audit@wasjobs.et",
-      "contactPhone": "0922000000",
-      "status": "active",
-      "isFeatured": false,
-      "viewsCount": 0,
-      "applicationsCount": 0,
-      "createdAt": "2026-11-06T19:14:50.436Z",
-      "updatedAt": "2026-11-06T19:14:50.436Z"
-    }
-  ],
+  "jobs": [],
   "applications": [],
   "savedJobs": [],
   "notifications": [
@@ -103,30 +62,6 @@
       "createdAt": "2026-01-01T08:00:00.000Z"
     },
     {
-      "id": "notif_1793992490419",
-      "userId": "usr_1793992490419_anixte",
-      "titleEn": "Welcome to WAS Jobs, Test!",
-      "titleAm": "እንኳን ወደ ዋስ ስራ በደህና መጡ፣ Test!",
-      "messageEn": "Complete your profile and upload your CV to start applying.",
-      "messageAm": "ስራዎችን ለማመልከት መገለጫዎን ያጠናቅቁ እና ሲቪዎን (CV) ይጫኑ።",
-      "type": "system",
-      "read": false,
-      "link": "/profile",
-      "createdAt": "2026-11-06T19:14:50.419Z"
-    },
-    {
-      "id": "notif_1793992490427",
-      "userId": "usr_1793992490427_u99b70",
-      "titleEn": "Welcome to WAS Jobs, Test!",
-      "titleAm": "እንኳን ወደ ዋስ ስራ በደህና መጡ፣ Test!",
-      "messageEn": "Complete your company profile and post your first job vacancy.",
-      "messageAm": "የመጀመሪያውን ክፍት የስራ ማስታወቂያ ለመለጠፍ የድርጅትዎን መረጃ ያሟሉ።",
-      "type": "system",
-      "read": false,
-      "link": "/employer",
-      "createdAt": "2026-11-06T19:14:50.427Z"
-    },
-    {
       "id": "notif_1793992490436",
       "userId": "usr_admin_1",
       "titleEn": "New Job Posted",
@@ -137,6 +72,126 @@
       "read": false,
       "link": "/admin",
       "createdAt": "2026-11-06T19:14:50.436Z"
+    },
+    {
+      "id": "notif_1794122822079",
+      "userId": "usr_1794122822079_44rfl4",
+      "titleEn": "Welcome to WAS Jobs, Habite!",
+      "titleAm": "እንኳን ወደ ዋስ ስራ በደህና መጡ፣ Habite!",
+      "messageEn": "Complete your profile and upload your CV to start applying.",
+      "messageAm": "ስራዎችን ለማመልከት መገለጫዎን ያጠናቅቁ እና ሲቪዎን (CV) ይጫኑ።",
+      "type": "system",
+      "read": false,
+      "link": "/profile",
+      "createdAt": "2026-11-08T07:27:02.079Z"
+    },
+    {
+      "id": "notif_1794132054092",
+      "userId": "usr_admin_1",
+      "titleEn": "New Job Posted",
+      "titleAm": "አዲስ የስራ ማስታወቂያ ተለጥፏል",
+      "messageEn": "\"Junior React Developer\" posted by Ethio Tech Solutions in Addis Ababa, Bole.",
+      "messageAm": "\"Junior React Developer\" በ Ethio Tech Solutions (Addis Ababa, Bole) ተለጥፏል።",
+      "type": "job_approval",
+      "read": false,
+      "link": "/admin",
+      "createdAt": "2026-11-08T10:00:54.092Z"
+    },
+    {
+      "id": "notif_1794132096462",
+      "userId": "usr_admin_1",
+      "titleEn": "New Job Posted",
+      "titleAm": "አዲስ የስራ ማስታወቂያ ተለጥፏል",
+      "messageEn": "\"Junior React Developer\" posted by Ethio Tech Solutions in Addis Ababa, Bole.",
+      "messageAm": "\"Junior React Developer\" በ Ethio Tech Solutions (Addis Ababa, Bole) ተለጥፏል።",
+      "type": "job_approval",
+      "read": false,
+      "link": "/admin",
+      "createdAt": "2026-11-08T10:01:36.462Z"
+    },
+    {
+      "id": "notif_1794214216083",
+      "userId": "usr_admin_1",
+      "titleEn": "New Job Posted",
+      "titleAm": "አዲስ የስራ ማስታወቂያ ተለጥፏል",
+      "messageEn": "\"Senior React & Node Fullstack Engineer\" posted by Ethio FinTech Solutions in Addis Ababa.",
+      "messageAm": "\"Senior React & Node Fullstack Engineer\" በ Ethio FinTech Solutions (Addis Ababa) ተለጥፏል።",
+      "type": "job_approval",
+      "read": false,
+      "link": "/admin",
+      "createdAt": "2026-11-09T08:50:16.083Z"
+    },
+    {
+      "id": "notif_1794214307887",
+      "userId": "usr_admin_1",
+      "titleEn": "New Job Posted",
+      "titleAm": "አዲስ የስራ ማስታወቂያ ተለጥፏል",
+      "messageEn": "\"Senior React & Node Fullstack Engineer\" posted by Ethio FinTech Solutions in Addis Ababa.",
+      "messageAm": "\"Senior React & Node Fullstack Engineer\" በ Ethio FinTech Solutions (Addis Ababa) ተለጥፏል።",
+      "type": "job_approval",
+      "read": false,
+      "link": "/admin",
+      "createdAt": "2026-11-09T08:51:47.887Z"
+    },
+    {
+      "id": "notif_1794215255394",
+      "userId": "usr_admin_1",
+      "titleEn": "New Job Posted",
+      "titleAm": "አዲስ የስራ ማስታወቂያ ተለጥፏል",
+      "messageEn": "\"Senior React & Node Fullstack Engineer\" posted by Ethio FinTech Solutions in Addis Ababa.",
+      "messageAm": "\"Senior React & Node Fullstack Engineer\" በ Ethio FinTech Solutions (Addis Ababa) ተለጥፏል።",
+      "type": "job_approval",
+      "read": false,
+      "link": "/admin",
+      "createdAt": "2026-11-09T09:07:35.394Z"
+    },
+    {
+      "id": "notif_1794216326966",
+      "userId": "usr_admin_1",
+      "titleEn": "New Job Posted",
+      "titleAm": "አዲስ የስራ ማስታወቂያ ተለጥፏል",
+      "messageEn": "\"Senior React & Node Fullstack Engineer\" posted by Ethio FinTech Solutions in Addis Ababa.",
+      "messageAm": "\"Senior React & Node Fullstack Engineer\" በ Ethio FinTech Solutions (Addis Ababa) ተለጥፏል።",
+      "type": "job_approval",
+      "read": false,
+      "link": "/admin",
+      "createdAt": "2026-11-09T09:25:26.966Z"
+    },
+    {
+      "id": "notif_1794218208929",
+      "userId": "usr_admin_1",
+      "titleEn": "New Job Posted",
+      "titleAm": "አዲስ የስራ ማስታወቂያ ተለጥፏል",
+      "messageEn": "\"Senior React & Node Fullstack Engineer\" posted by Ethio FinTech Solutions in Addis Ababa.",
+      "messageAm": "\"Senior React & Node Fullstack Engineer\" በ Ethio FinTech Solutions (Addis Ababa) ተለጥፏል።",
+      "type": "job_approval",
+      "read": false,
+      "link": "/admin",
+      "createdAt": "2026-11-09T09:56:48.929Z"
+    },
+    {
+      "id": "notif_1794218310402",
+      "userId": "usr_admin_1",
+      "titleEn": "New Job Posted",
+      "titleAm": "አዲስ የስራ ማስታወቂያ ተለጥፏል",
+      "messageEn": "\"Senior React & Node Fullstack Engineer\" posted by Ethio FinTech Solutions in Addis Ababa.",
+      "messageAm": "\"Senior React & Node Fullstack Engineer\" በ Ethio FinTech Solutions (Addis Ababa) ተለጥፏል።",
+      "type": "job_approval",
+      "read": false,
+      "link": "/admin",
+      "createdAt": "2026-11-09T09:58:30.402Z"
+    },
+    {
+      "id": "notif_1794316057714",
+      "userId": "usr_admin_1",
+      "titleEn": "New Job Posted",
+      "titleAm": "አዲስ የስራ ማስታወቂያ ተለጥፏል",
+      "messageEn": "\"Senior React & Node Fullstack Engineer\" posted by Ethio FinTech Solutions in Addis Ababa.",
+      "messageAm": "\"Senior React & Node Fullstack Engineer\" በ Ethio FinTech Solutions (Addis Ababa) ተለጥፏል።",
+      "type": "job_approval",
+      "read": false,
+      "link": "/admin",
+      "createdAt": "2026-11-10T13:07:37.714Z"
     }
   ],
   "reports": [],

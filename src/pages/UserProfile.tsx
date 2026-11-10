@@ -15,6 +15,7 @@ import {
 } from 'lucide-react';
 import { useLanguage } from '../context/LanguageContext.tsx';
 import { useAuth } from '../context/AuthContext.tsx';
+import { safeJsonFetch } from '../utils/api.ts';
 
 export const UserProfile: React.FC = () => {
   const { lang, t } = useLanguage();
@@ -84,12 +85,12 @@ export const UserProfile: React.FC = () => {
         method: 'POST',
         body: formData,
       });
-      const data = await res.json();
-      if (res.ok) {
+      const parsed = await safeJsonFetch(res, 'Failed to upload CV');
+      if (parsed.ok && parsed.data) {
         setCvMsg(lang === 'am' ? 'ሲቪዎ በተሳካ ሁኔታ ተጭኗል!' : 'CV uploaded successfully!');
         await refreshUser();
       } else {
-        setCvError(data.error || 'Failed to upload CV');
+        setCvError(parsed.error || 'Failed to upload CV');
       }
     } catch (err: any) {
       setCvError(err.message || 'Error uploading file');

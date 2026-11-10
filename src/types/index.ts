@@ -17,6 +17,9 @@ export interface User {
   cvFileName?: string;
   cvOriginalName?: string;
   cvUrl?: string;
+  cvBase64?: string;
+  passwordChangedAt?: number;
+  tokenVersion?: number;
   createdAt: string;
   updatedAt: string;
 }

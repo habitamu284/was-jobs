@@ -15,6 +15,7 @@ import {
 import { useLanguage } from '../context/LanguageContext.tsx';
 import { useAuth } from '../context/AuthContext.tsx';
 import { EmploymentType } from '../types/index.ts';
+import { safeJsonFetch } from '../utils/api.ts';
 
 interface PostJobProps {
   onSuccess: (jobId: string) => void;
@@ -86,12 +87,12 @@ export const PostJob: React.FC<PostJobProps> = ({ onSuccess, onCancel }) => {
         body: JSON.stringify(payload),
       });
 
-      const data = await res.json();
-      if (!res.ok) {
-        throw new Error(data.error || 'Failed to post job');
+      const parsed = await safeJsonFetch<{ job: { id: string } }>(res, 'Failed to post job');
+      if (!parsed.ok || !parsed.data) {
+        throw new Error(parsed.error || 'Failed to post job');
       }
 
-      onSuccess(data.job.id);
+      onSuccess(parsed.data.job.id);
     } catch (err: any) {
       setError(err.message || 'Error creating job posting');
     } finally {

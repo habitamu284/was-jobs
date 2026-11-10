@@ -6,6 +6,7 @@ import { Navbar } from './components/Navbar.tsx';
 import { BottomNav } from './components/BottomNav.tsx';
 import { AuthModal } from './components/AuthModal.tsx';
 import { PaymentModal } from './components/PaymentModal.tsx';
+import { TrustModal, TrustModalTab } from './components/TrustModal.tsx';
 import { JobsList } from './pages/JobsList.tsx';
 import { JobDetail } from './pages/JobDetail.tsx';
 import { PostJob } from './pages/PostJob.tsx';
@@ -26,10 +27,17 @@ function AppContent() {
   const [authModalOpen, setAuthModalOpen] = useState(false);
   const [authModalMode, setAuthModalMode] = useState<'login' | 'register' | 'forgot'>('login');
   const [paymentModalOpen, setPaymentModalOpen] = useState(false);
+  const [trustModalOpen, setTrustModalOpen] = useState(false);
+  const [trustModalTab, setTrustModalTab] = useState<TrustModalTab>('privacy');
 
   const openAuthModal = (mode: 'login' | 'register' | 'forgot' = 'login') => {
     setAuthModalMode(mode);
     setAuthModalOpen(true);
+  };
+
+  const openTrustModal = (tab: TrustModalTab = 'privacy') => {
+    setTrustModalTab(tab);
+    setTrustModalOpen(true);
   };
 
   const handleSelectJob = (job: Job) => {
@@ -187,14 +195,38 @@ function AppContent() {
           </div>
         </div>
 
-        <div className="max-w-7xl mx-auto pt-6 border-t border-slate-800 flex flex-col sm:flex-row items-center justify-between gap-2 text-[11px]">
+        <div className="max-w-7xl mx-auto pt-6 border-t border-slate-800 flex flex-col sm:flex-row items-center justify-between gap-3 text-[11px]">
           <div>
             © {new Date().getFullYear()} WAS Jobs Ethiopia (ዋስ ስራ). All rights reserved.
           </div>
-          <div className="flex items-center gap-4 text-slate-400">
-            <span>Amharic (አማርኛ) / English</span>
+          <div className="flex flex-wrap items-center gap-3 sm:gap-4 text-slate-300">
+            <button
+              onClick={() => openTrustModal('privacy')}
+              className="hover:text-white hover:underline transition"
+            >
+              {lang === 'am' ? 'የግላዊነት ፖሊሲ' : 'Privacy Policy'}
+            </button>
             <span>•</span>
-            <span>Mobile-First Android Ready</span>
+            <button
+              onClick={() => openTrustModal('terms')}
+              className="hover:text-white hover:underline transition"
+            >
+              {lang === 'am' ? 'የአጠቃቀም ደንቦች' : 'Terms of Service'}
+            </button>
+            <span>•</span>
+            <button
+              onClick={() => openTrustModal('safety')}
+              className="hover:text-amber-400 text-amber-400 font-semibold transition"
+            >
+              {lang === 'am' ? 'የደህንነት ማስጠንቀቂያ' : 'Anti-Fraud & Safety'}
+            </button>
+            <span>•</span>
+            <button
+              onClick={() => openTrustModal('contact')}
+              className="hover:text-white hover:underline transition"
+            >
+              {lang === 'am' ? 'ያግኙን' : 'Contact Us'}
+            </button>
           </div>
         </div>
       </footer>
@@ -226,6 +258,13 @@ function AppContent() {
       <PaymentModal
         isOpen={paymentModalOpen}
         onClose={() => setPaymentModalOpen(false)}
+      />
+
+      {/* Trust, Privacy & Safety Modal */}
+      <TrustModal
+        isOpen={trustModalOpen}
+        onClose={() => setTrustModalOpen(false)}
+        initialTab={trustModalTab}
       />
     </div>
   );

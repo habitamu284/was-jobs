@@ -17,10 +17,12 @@ import {
   Send,
   Download,
   AlertCircle,
+  ShieldCheck,
 } from 'lucide-react';
 import { Job, Company } from '../types/index.ts';
 import { useLanguage } from '../context/LanguageContext.tsx';
 import { useAuth } from '../context/AuthContext.tsx';
+import { safeJsonFetch } from '../utils/api.ts';
 import { ApplyModal } from '../components/ApplyModal.tsx';
 import { ReportModal } from '../components/ReportModal.tsx';
 
@@ -53,11 +55,11 @@ export const JobDetail: React.FC<JobDetailProps> = ({
   useEffect(() => {
     setLoading(true);
     fetch(`/api/jobs/${jobId}`)
-      .then((res) => res.json())
-      .then((data) => {
-        if (data.job) {
-          setJob(data.job);
-          setCompany(data.company || null);
+      .then((res) => safeJsonFetch<{ job: Job; company?: Company }>(res))
+      .then((parsed) => {
+        if (parsed.data?.job) {
+          setJob(parsed.data.job);
+          setCompany(parsed.data.company || null);
         }
         setLoading(false);
       })
@@ -69,10 +71,10 @@ export const JobDetail: React.FC<JobDetailProps> = ({
     // Check if user has already applied
     if (user?.role === 'seeker') {
       authFetch('/api/applications/my')
-        .then((res) => res.json())
-        .then((data) => {
-          if (data.applications) {
-            const applied = data.applications.some((a: any) => a.jobId === jobId);
+        .then((res) => safeJsonFetch<{ applications: any[] }>(res))
+        .then((parsed) => {
+          if (parsed.data?.applications) {
+            const applied = parsed.data.applications.some((a: any) => a.jobId === jobId);
             setHasApplied(applied);
           }
         })
@@ -276,6 +278,21 @@ export const JobDetail: React.FC<JobDetailProps> = ({
             </span>
             <span className="font-extrabold text-slate-900 text-xs sm:text-sm mt-0.5 block">
               {job.viewsCount || 1} {lang === 'am' ? 'እይታ' : 'views'} • {job.applicationsCount || 0} {lang === 'am' ? 'ማመልከቻ' : 'applied'}
+            </span>
+          </div>
+        </div>
+
+        {/* Anti-Fraud Protection Notice */}
+        <div className="mt-4 p-3.5 bg-amber-50/90 rounded-xl border border-amber-200/90 flex items-start gap-3 text-xs text-amber-900">
+          <ShieldCheck className="w-5 h-5 text-amber-600 shrink-0 mt-0.5" />
+          <div className="leading-relaxed">
+            <span className="font-black text-amber-950">
+              {lang === 'am' ? 'የስራ ፈላጊዎች የደህንነት ጥበቃ፡ ' : 'Job Seeker Safe Hiring Guarantee: '}
+            </span>
+            <span>
+              {lang === 'am'
+                ? 'በዋስ ስራ ላይ ስራ መፈለግ እና ማመልከት 100% ነፃ ነው። ማንኛውም አሰሪ ለቃለ-መጠይቅ፣ ለመመዝገቢያ ወይም ለዩኒፎርም በሚል በቴሌብርም ሆነ በባንክ በቅድሚያ ክፍያ እንዲከፍሉ ከጠየቀ አጭበርባሪ በመሆኑ አይክፈሉ፤ ወዲያውኑ ሪፖርት ያድርጉ።'
+                : 'Applying on WAS Jobs is 100% free. Legitimate employers never request advance fees for interviews or uniforms via Telebirr/Bank. Report suspicious activity immediately.'}
             </span>
           </div>
         </div>

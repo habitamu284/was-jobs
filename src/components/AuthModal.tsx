@@ -3,6 +3,7 @@ import { X, Lock, Mail, User, Phone, Building, Shield, ArrowRight, CheckCircle2 
 import { useLanguage } from '../context/LanguageContext.tsx';
 import { useAuth } from '../context/AuthContext.tsx';
 import { UserRole } from '../types/index.ts';
+import { safeJsonFetch } from '../utils/api.ts';
 
 interface AuthModalProps {
   isOpen: boolean;
@@ -82,11 +83,11 @@ export const AuthModal: React.FC<AuthModalProps> = ({
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ email, newPassword: password }),
         });
-        const data = await res.json();
-        if (!res.ok) {
-          setError(data.error || 'Reset failed');
+        const parsed = await safeJsonFetch(res, lang === 'am' ? 'የይለፍ ቃል መቀየር አልተሳካም።' : 'Reset failed');
+        if (!parsed.ok || !parsed.data) {
+          setError(parsed.error || 'Reset failed');
         } else {
-          setSuccessMsg(data.message);
+          setSuccessMsg(parsed.data.message || (lang === 'am' ? 'የይለፍ ቃልዎ ተቀይሯል።' : 'Password updated successfully.'));
           setTimeout(() => {
             setMode('login');
           }, 1500);
@@ -144,10 +145,16 @@ export const AuthModal: React.FC<AuthModalProps> = ({
             </div>
             <button
               type="button"
-              onClick={() => handleDemoClick('admin')}
+              onClick={() => {
+                setMode('login');
+                setEmail('habitegechewe@gmail.com');
+                setPassword('');
+                setError(null);
+                setSuccessMsg(lang === 'am' ? 'የአስተዳዳሪው ኢሜይል ተሞልቷል። እባክዎ ሚስጥር ቃልዎን ያስገቡ።' : 'Administrator email selected. Please enter your secret password.');
+              }}
               className="w-full sm:w-auto px-3 py-1.5 rounded-lg bg-amber-600 hover:bg-amber-700 text-white font-bold text-xs shadow-xs transition flex items-center justify-center gap-1.5"
             >
-              <span>👑 {lang === 'am' ? 'ሀብታሙ ጌታቸው (አስተዳዳሪ)' : 'Login: Habitamu Getachew'}</span>
+              <span>👑 {lang === 'am' ? 'ሀብታሙ ጌታቸው (የአስተዳዳሪ መግቢያ)' : 'Habitamu Getachew (Admin Login)'}</span>
             </button>
           </div>
         </div>

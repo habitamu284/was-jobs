@@ -17,6 +17,7 @@ import {
 import { useLanguage } from '../context/LanguageContext.tsx';
 import { useAuth } from '../context/AuthContext.tsx';
 import { PaymentTransaction } from '../types/index.ts';
+import { safeJsonFetch } from '../utils/api.ts';
 
 interface PaymentModalProps {
   isOpen: boolean;
@@ -73,9 +74,9 @@ export const PaymentModal: React.FC<PaymentModalProps> = ({
     setLoadingHistory(true);
     try {
       const res = await authFetch('/api/payments/my-transactions');
-      if (res.ok) {
-        const data = await res.json();
-        setMyTransactions(data.transactions || []);
+      const parsed = await safeJsonFetch<{ transactions: PaymentTransaction[] }>(res);
+      if (parsed.ok && parsed.data) {
+        setMyTransactions(parsed.data.transactions || []);
       }
     } catch (e) {
       console.error(e);
@@ -140,9 +141,9 @@ export const PaymentModal: React.FC<PaymentModalProps> = ({
         }),
       });
 
-      const data = await res.json();
-      if (!res.ok) {
-        throw new Error(data.error || 'Failed to submit transaction');
+      const parsed = await safeJsonFetch(res, 'Failed to submit transaction');
+      if (!parsed.ok || !parsed.data) {
+        throw new Error(parsed.error || 'Failed to submit transaction');
       }
 
       setSubmitSuccess(

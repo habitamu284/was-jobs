@@ -8,3 +8,8 @@ coverage/
 !.env.example
 *.zip
 public/assets/aistudio/
+uploads/
+data/rate_limits.json
+data/revoked_tokens.json
+server.js
+bun.lock

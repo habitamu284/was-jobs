@@ -1,18 +1,28 @@
-import { Router, Response } from 'express';
-import { db, hashPassword } from '../db.ts';
-import { generateToken, AuthenticatedRequest, requireAuth } from '../auth.ts';
-import { User, Company } from '../../src/types/index.ts';
+import { Router } from 'express';
+import type { Response } from 'express';
+import { db, hashPassword, verifyPassword } from '../db.ts';
+import { generateToken, revokeToken, requireAuth } from '../auth.ts';
+import type { AuthenticatedRequest } from '../auth.ts';
+import type { User, Company } from '../../src/types/index.ts';
+import {
+  loginRateLimiter,
+  recordFailedLogin,
+  resetFailedLogin,
+  registerRateLimiter,
+  resetPasswordRateLimiter,
+} from '../middleware/rateLimit.ts';
 
 const router = Router();
 
-// Register new user
-router.post('/register', (req, res) => {
+// Register new user (protected by registration rate limiter against bot spam)
+router.post('/register', registerRateLimiter, (req, res) => {
   const { fullName, email, password, role, phone, companyName, industry, location } = req.body;
 
   if (!fullName || !email || !password || !role) {
     return res.status(400).json({ error: 'Please fill all required fields. እባክዎ ሁሉንም አስፈላጊ መረጃዎች ይሙሉ::' });
   }
 
+  // Strict role enforcement: Only seeker or employer allowed at registration
   if (role !== 'seeker' && role !== 'employer') {
     return res.status(400).json({ error: 'Invalid role. Role must be job seeker or employer.' });
   }
@@ -33,6 +43,7 @@ router.post('/register', (req, res) => {
     phone: phone?.trim() || '',
     location: location?.trim() || 'Addis Ababa',
     skills: [],
+    tokenVersion: 1,
     createdAt: new Date().toISOString(),
     updatedAt: new Date().toISOString(),
   };
@@ -84,8 +95,8 @@ router.post('/register', (req, res) => {
   });
 });
 
-// Login
-router.post('/login', (req, res) => {
+// Login (protected by brute-force rate limiter)
+router.post('/login', loginRateLimiter, (req, res) => {
   const { email, password } = req.body;
   if (!email || !password) {
     return res.status(400).json({ error: 'Please enter both email and password. እባክዎ ኢሜል እና የይለፍ ቃል ያስገቡ።' });
@@ -94,13 +105,28 @@ router.post('/login', (req, res) => {
   const normalizedEmail = email.toLowerCase().trim();
   const user = db.get().users.find((u) => u.email.toLowerCase() === normalizedEmail);
 
-  if (!user || user.passwordHash !== hashPassword(password)) {
+  if (!user || !verifyPassword(password, user.passwordHash)) {
+    recordFailedLogin(req);
     return res.status(401).json({ error: 'Invalid email or password. ትክክለኛ ያልሆነ ኢሜይል ወይም የይለፍ ቃል።' });
+  }
+
+  // Clear failed attempts upon successful login
+  resetFailedLogin(req);
+
+  // Automatic hash upgrade: if user had legacy SHA-256 hash, upgrade to bcrypt
+  if (!user.passwordHash.startsWith('$2a$') && !user.passwordHash.startsWith('$2b$')) {
+    db.update((database) => {
+      const target = database.users.find((u) => u.id === user.id);
+      if (target) {
+        target.passwordHash = hashPassword(password);
+        target.updatedAt = new Date().toISOString();
+      }
+    });
   }
 
   const token = generateToken(user);
   const company = db.get().companies.find((c) => c.userId === user.id);
-  const { passwordHash: _, ...safeUser } = user;
+  const { passwordHash: _, cvBase64: __, ...safeUser } = user;
 
   res.json({
     message: 'Logged in successfully. በተሳካ ሁኔታ ገብተዋል።',
@@ -110,14 +136,20 @@ router.post('/login', (req, res) => {
   });
 });
 
-// Fast login for Admin, or dynamic lookup for registered users
+// Demo login for testing seeker or employer accounts
+// STRICT SECURITY POLICY: Admin access CANNOT be bypassed via demo-login!
 router.post('/demo-login', (req, res) => {
   const { role } = req.body;
-  let targetUser: User | undefined;
 
   if (role === 'admin') {
-    targetUser = db.get().users.find((u) => u.role === 'admin' || u.email === 'habitegechewe@gmail.com');
-  } else if (role === 'employer') {
+    return res.status(403).json({
+      error: 'Admin access requires password authentication. የአስተዳዳሪ መግቢያ የሚስጥር ቃል ማረጋገጫ ይጠይቃል። እባክዎ በይለፍ ቃልዎ ይግቡ።',
+    });
+  }
+
+  let targetUser: User | undefined;
+
+  if (role === 'employer') {
     targetUser = db.get().users.find((u) => u.role === 'employer');
     if (!targetUser) {
       return res.status(404).json({
@@ -149,8 +181,8 @@ router.post('/demo-login', (req, res) => {
   });
 });
 
-// Reset Password
-router.post('/reset-password', (req, res) => {
+// Reset Password (protected by rate limiter and auto-revokes existing tokens across all sessions)
+router.post('/reset-password', resetPasswordRateLimiter, (req, res) => {
   const { email, newPassword } = req.body;
   if (!email || !newPassword || newPassword.length < 6) {
     return res.status(400).json({
@@ -167,17 +199,28 @@ router.post('/reset-password', (req, res) => {
     });
   }
 
+  const now = Date.now();
   db.update((database) => {
     const target = database.users.find((u) => u.id === user.id);
     if (target) {
       target.passwordHash = hashPassword(newPassword);
+      target.passwordChangedAt = now;
+      target.tokenVersion = (target.tokenVersion || 1) + 1;
       target.updatedAt = new Date().toISOString();
     }
   });
 
   res.json({
-    message: 'Password reset successfully. You can now login with your new password. የይለፍ ቃልዎ በተሳካ ሁኔታ ተቀይሯል። አሁን በአዲሱ የይለፍ ቃል መግባት ይችላሉ።',
+    message: 'Password reset successfully. All active sessions have been invalidated. Please log in with your new password. የይለፍ ቃልዎ በተሳካ ሁኔታ ተቀይሯል። የቆዩ ክፍለ-ጊዜዎች በሙሉ ተሰርዘዋል፤ አሁን በአዲሱ የይለፍ ቃል መግባት ይችላሉ።',
   });
+});
+
+// Logout endpoint with server-side token revocation
+router.post('/logout', (req: AuthenticatedRequest, res: Response) => {
+  if (req.token) {
+    revokeToken(req.token);
+  }
+  res.json({ message: 'Logged out successfully. በተሳካ ሁኔታ ወጥተዋል።' });
 });
 
 // Current user profile
@@ -186,7 +229,7 @@ router.get('/me', (req: AuthenticatedRequest, res: Response) => {
     return res.status(401).json({ error: 'Not authenticated' });
   }
   const company = db.get().companies.find((c) => c.userId === req.user!.id);
-  const { passwordHash: _, ...safeUser } = req.user;
+  const { passwordHash: _, cvBase64: __, ...safeUser } = req.user;
   res.json({ user: safeUser, company });
 });
 

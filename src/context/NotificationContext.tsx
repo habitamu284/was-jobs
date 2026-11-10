@@ -1,6 +1,7 @@
 import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
 import { AppNotification } from '../types/index.ts';
 import { useAuth } from './AuthContext.tsx';
+import { safeJsonFetch } from '../utils/api.ts';
 
 interface NotificationContextType {
   notifications: AppNotification[];
@@ -25,10 +26,10 @@ export const NotificationProvider: React.FC<{ children: React.ReactNode }> = ({ 
     }
     try {
       const res = await authFetch('/api/notifications');
-      if (res && res.ok) {
-        const data = await res.json();
-        setNotifications(data.notifications || []);
-        setUnreadCount(data.unreadCount || 0);
+      const parsed = await safeJsonFetch(res);
+      if (parsed.ok && parsed.data) {
+        setNotifications(parsed.data.notifications || []);
+        setUnreadCount(parsed.data.unreadCount || 0);
       }
     } catch (e) {
       // Gracefully ignore transient network offline errors

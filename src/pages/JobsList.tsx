@@ -13,6 +13,7 @@ import {
 import { Job } from '../types/index.ts';
 import { useLanguage } from '../context/LanguageContext.tsx';
 import { useAuth } from '../context/AuthContext.tsx';
+import { safeJsonFetch } from '../utils/api.ts';
 import { JobCard } from '../components/JobCard.tsx';
 import { JobFilters } from '../components/JobFilters.tsx';
 
@@ -53,8 +54,8 @@ export const JobsList: React.FC<JobsListProps> = ({
       if (minSalary > 0) params.set('minSalary', minSalary.toString());
 
       const res = await fetch(`/api/jobs?${params.toString()}`);
-      const data = await res.json();
-      setJobs(data.jobs || []);
+      const parsed = await safeJsonFetch<{ jobs: Job[] }>(res);
+      setJobs(parsed.data?.jobs || []);
     } catch (err) {
       console.error('Failed to fetch jobs:', err);
     } finally {
@@ -73,9 +74,9 @@ export const JobsList: React.FC<JobsListProps> = ({
   useEffect(() => {
     if (user) {
       authFetch('/api/saved-jobs')
-        .then((res) => res.json())
-        .then((data) => {
-          if (data.savedIds) setSavedJobIds(data.savedIds);
+        .then((res) => safeJsonFetch<{ savedIds: string[] }>(res))
+        .then((parsed) => {
+          if (parsed.data?.savedIds) setSavedJobIds(parsed.data.savedIds);
         })
         .catch(console.error);
     } else {

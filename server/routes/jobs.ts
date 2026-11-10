@@ -129,6 +129,7 @@ router.post('/', requireRole('employer', 'admin'), (req: AuthenticatedRequest, r
     applicationDeadline,
     contactEmail,
     contactPhone,
+    contactTelegram,
   } = req.body;
 
   if (!title || !description || !location || !category || !applicationDeadline) {
@@ -178,6 +179,7 @@ router.post('/', requireRole('employer', 'admin'), (req: AuthenticatedRequest, r
     applicationDeadline: applicationDeadline,
     contactEmail: contactEmail?.trim() || employerCompany.email || req.user!.email,
     contactPhone: contactPhone?.trim() || employerCompany.phone || req.user!.phone || '',
+    contactTelegram: contactTelegram?.trim() ? (contactTelegram.trim().startsWith('@') || contactTelegram.trim().startsWith('http') ? contactTelegram.trim() : `@${contactTelegram.trim()}`) : undefined,
     status: 'active',
     isFeatured: false,
     viewsCount: 0,
@@ -243,6 +245,7 @@ router.put('/:id', requireRole('employer', 'admin'), (req: AuthenticatedRequest,
     applicationDeadline,
     contactEmail,
     contactPhone,
+    contactTelegram,
     status,
   } = req.body;
 
@@ -272,6 +275,9 @@ router.put('/:id', requireRole('employer', 'admin'), (req: AuthenticatedRequest,
       if (applicationDeadline) job.applicationDeadline = applicationDeadline;
       if (contactEmail) job.contactEmail = contactEmail.trim();
       if (contactPhone) job.contactPhone = contactPhone.trim();
+      if (contactTelegram !== undefined) {
+        job.contactTelegram = contactTelegram.trim() ? (contactTelegram.trim().startsWith('@') || contactTelegram.trim().startsWith('http') ? contactTelegram.trim() : `@${contactTelegram.trim()}`) : undefined;
+      }
       if (status) job.status = status as JobStatus;
       job.updatedAt = new Date().toISOString();
     }

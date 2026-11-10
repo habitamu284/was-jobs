@@ -15,6 +15,7 @@ import {
   CreditCard,
   CheckCircle,
   ExternalLink,
+  Send,
 } from 'lucide-react';
 import { useLanguage } from '../context/LanguageContext.tsx';
 import { useAuth } from '../context/AuthContext.tsx';
@@ -67,8 +68,20 @@ export const Navbar: React.FC<NavbarProps> = ({
           </span>
         </div>
 
-        {/* Administrator Access */}
-        <div>
+        {/* Top actions: Telegram Channel & Administrator Access */}
+        <div className="flex items-center gap-2">
+          <a
+            href="https://t.me/wasjobs"
+            target="_blank"
+            rel="noreferrer"
+            className="flex items-center gap-1 bg-[#24A1DE]/40 hover:bg-[#24A1DE]/70 text-white text-[11px] font-semibold px-2 py-0.5 rounded transition"
+            title="Join WAS Jobs Telegram Channel"
+          >
+            <Send className="w-3 h-3 text-sky-200" />
+            <span className="hidden sm:inline">Telegram: @wasjobs</span>
+            <span className="sm:hidden">@wasjobs</span>
+          </a>
+
           <button
             onClick={() => {
               if (user?.role === 'admin') {

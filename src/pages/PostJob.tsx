@@ -41,6 +41,7 @@ export const PostJob: React.FC<PostJobProps> = ({ onSuccess, onCancel }) => {
   );
   const [contactEmail, setContactEmail] = useState(company?.email || user?.email || '');
   const [contactPhone, setContactPhone] = useState(company?.phone || user?.phone || '');
+  const [contactTelegram, setContactTelegram] = useState('');
 
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -79,6 +80,7 @@ export const PostJob: React.FC<PostJobProps> = ({ onSuccess, onCancel }) => {
         applicationDeadline,
         contactEmail,
         contactPhone,
+        contactTelegram: contactTelegram.trim() || undefined,
       };
 
       const res = await authFetch('/api/jobs', {
@@ -309,7 +311,7 @@ export const PostJob: React.FC<PostJobProps> = ({ onSuccess, onCancel }) => {
           </div>
 
           {/* Application Deadline & Contact info */}
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
             <div>
               <label className="text-xs font-bold text-slate-700 block mb-1">
                 {lang === 'am' ? 'የማብቂያ ቀን (Deadline)' : 'Application Deadline'} *
@@ -347,6 +349,19 @@ export const PostJob: React.FC<PostJobProps> = ({ onSuccess, onCancel }) => {
                 value={contactPhone}
                 onChange={(e) => setContactPhone(e.target.value)}
                 placeholder="+251 9... / 011..."
+                className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs focus:ring-2 focus:ring-[#FF6B00]"
+              />
+            </div>
+
+            <div>
+              <label className="text-xs font-bold text-slate-700 block mb-1">
+                {lang === 'am' ? 'ቴሌግራም (አማራጭ)' : 'Telegram (Optional)'}
+              </label>
+              <input
+                type="text"
+                value={contactTelegram}
+                onChange={(e) => setContactTelegram(e.target.value)}
+                placeholder="@company_hr"
                 className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs focus:ring-2 focus:ring-[#FF6B00]"
               />
             </div>

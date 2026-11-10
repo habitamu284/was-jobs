@@ -37,6 +37,7 @@ export interface Company {
   description: string;
   verified: boolean;
   tinNumber?: string;
+  telegramChannel?: string;
   createdAt: string;
 }
 
@@ -62,6 +63,7 @@ export interface Job {
   applicationDeadline: string;
   contactEmail: string;
   contactPhone: string;
+  contactTelegram?: string;
   status: JobStatus;
   isFeatured: boolean;
   viewsCount: number;

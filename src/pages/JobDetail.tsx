@@ -15,6 +15,7 @@ import {
   Flame,
   Check,
   Send,
+  Copy,
   Download,
   AlertCircle,
   ShieldCheck,
@@ -50,7 +51,6 @@ export const JobDetail: React.FC<JobDetailProps> = ({
   const [hasApplied, setHasApplied] = useState(false);
   const [showApplyModal, setShowApplyModal] = useState(false);
   const [showReportModal, setShowReportModal] = useState(false);
-  const [copiedLink, setCopiedLink] = useState(false);
 
   useEffect(() => {
     setLoading(true);
@@ -124,10 +124,54 @@ export const JobDetail: React.FC<JobDetailProps> = ({
     return `${min || max} ${currency} / ${lang === 'am' ? 'በወር' : 'month'}`;
   };
 
+  const [copiedLink, setCopiedLink] = useState(false);
+  const [copiedTg, setCopiedTg] = useState(false);
+
   const handleShare = () => {
     navigator.clipboard.writeText(window.location.href);
     setCopiedLink(true);
     setTimeout(() => setCopiedLink(false), 2000);
+  };
+
+  const handleShareTelegram = () => {
+    if (!job) return;
+    const shareUrl = window.location.href;
+    const text =
+      lang === 'am'
+        ? `💼 የስራ መደብ: ${job.title}\n🏢 ድርጅት: ${job.companyName}\n📍 ቦታ: ${job.location}\n💰 ደመወዝ: ${formatSalary()}\n📅 ማመልከቻ ማብቂያ: ${job.applicationDeadline}\n\n👉 በዋስ ስራ (WAS Jobs) በኩል ቀጥታ ለማመልከት:\n`
+        : `💼 Position: ${job.title}\n🏢 Company: ${job.companyName}\n📍 Location: ${job.location}\n💰 Salary: ${formatSalary()}\n📅 Deadline: ${job.applicationDeadline}\n\n👉 Apply directly on WAS Jobs Ethiopia:\n`;
+    const tgUrl = `https://t.me/share/url?url=${encodeURIComponent(shareUrl)}&text=${encodeURIComponent(text)}`;
+    window.open(tgUrl, '_blank');
+  };
+
+  const handleCopyTelegramPost = () => {
+    if (!job) return;
+    const shareUrl = window.location.href;
+    const formattedPost = `📢 አዲስ የስራ ማስታወቂያ (New Vacancy)
+━━━━━━━━━━━━━━━━━
+💼 የስራ መደብ: ${job.title}
+🏢 ድርጅት: ${job.companyName}
+📍 የስራ ቦታ: ${job.location}
+🏷️ ዘርፍ: ${job.category}
+⏱️ የስራ አይነት: ${job.employmentType.replace('_', ' ')}
+💰 ደመወዝ: ${formatSalary()}
+📅 የማመልከቻ ማብቂያ: ${job.applicationDeadline}
+
+📋 ዋና ዋና መስፈርቶች:
+${(job.requiredQualifications || []).map((q) => `• ${q}`).join('\n')}
+
+📞 አድራሻ:
+• ስልክ: ${job.contactPhone || 'N/A'}
+• ኢሜይል: ${job.contactEmail || 'N/A'}${job.contactTelegram ? `\n• ቴሌግራም: ${job.contactTelegram}` : ''}
+
+🔗 ቀጥታ ለማመልከት እና ሙሉ መረጃውን ለማየት:
+${shareUrl}
+━━━━━━━━━━━━━━━━━
+🇪🇹 ዋስ ስራ - WAS Jobs Ethiopia
+ቀዳሚው ዘመናዊ የስራ እና የቅጥር ገበያ`;
+    navigator.clipboard.writeText(formattedPost);
+    setCopiedTg(true);
+    setTimeout(() => setCopiedTg(false), 2500);
   };
 
   const handleApplyClick = () => {
@@ -150,13 +194,35 @@ export const JobDetail: React.FC<JobDetailProps> = ({
           <span>{lang === 'am' ? 'ወደ ስራዎች ዝርዝር ተመለስ' : 'Back to Jobs'}</span>
         </button>
 
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-2 flex-wrap justify-end">
+          {/* Share on Telegram button */}
+          <button
+            onClick={handleShareTelegram}
+            className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-[#24A1DE] hover:bg-[#1E88E5] text-white text-xs font-bold transition shadow-xs"
+            title="Share directly on Telegram"
+          >
+            <Send className="w-3.5 h-3.5" />
+            <span className="hidden sm:inline">{lang === 'am' ? 'በቴሌግራም አጋራ' : 'Share on Telegram'}</span>
+            <span className="sm:hidden">Telegram</span>
+          </button>
+
+          {/* Copy formatted Telegram channel post */}
+          <button
+            onClick={handleCopyTelegramPost}
+            className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-800 text-xs font-bold transition border border-slate-200"
+            title="Copy pre-formatted post for Telegram channel"
+          >
+            {copiedTg ? <Check className="w-3.5 h-3.5 text-emerald-600" /> : <Copy className="w-3.5 h-3.5 text-slate-600" />}
+            <span>{copiedTg ? (lang === 'am' ? 'ፖስቱ ተቀድቷል!' : 'Post Copied!') : (lang === 'am' ? 'ለቻናል ቅዳ' : 'Copy TG Post')}</span>
+          </button>
+
           <button
             onClick={handleShare}
-            className="flex items-center gap-1 px-3 py-1.5 rounded-lg bg-white border border-slate-200 text-slate-700 hover:bg-slate-50 text-xs font-semibold transition"
+            className="flex items-center gap-1 px-2.5 py-1.5 rounded-lg bg-white border border-slate-200 text-slate-700 hover:bg-slate-50 text-xs font-semibold transition"
+            title="Copy web link"
           >
             {copiedLink ? <Check className="w-3.5 h-3.5 text-emerald-600" /> : <Share2 className="w-3.5 h-3.5" />}
-            <span>{copiedLink ? (lang === 'am' ? 'ሊንኩ ተቀድቷል' : 'Copied!') : t('share')}</span>
+            <span>{copiedLink ? (lang === 'am' ? 'ተቀድቷል' : 'Copied!') : t('share')}</span>
           </button>
 
           <button
@@ -355,12 +421,61 @@ export const JobDetail: React.FC<JobDetailProps> = ({
                   <span className="font-semibold text-slate-800">{job.contactPhone}</span>
                 </div>
               </div>
+
+              {/* Telegram Contact Option */}
+              <div className="flex items-center justify-between p-3 rounded-xl bg-sky-50 border border-sky-200 col-span-1 sm:col-span-2">
+                <div className="flex items-center gap-2.5">
+                  <div className="w-8 h-8 rounded-lg bg-[#24A1DE] text-white flex items-center justify-center font-bold text-xs shadow-xs">
+                    <Send className="w-4 h-4" />
+                  </div>
+                  <div>
+                    <span className="text-[10px] text-sky-700 font-bold block">{lang === 'am' ? 'የቴሌግራም አድራሻ' : 'Telegram Contact'}</span>
+                    <span className="font-semibold text-slate-800">{job.contactTelegram || job.contactPhone}</span>
+                  </div>
+                </div>
+                <a
+                  href={
+                    job.contactTelegram
+                      ? (job.contactTelegram.startsWith('http')
+                          ? job.contactTelegram
+                          : `https://t.me/${job.contactTelegram.replace('@', '')}`)
+                      : `https://t.me/+251${job.contactPhone.replace(/^0/, '').replace(/\s+/g, '')}`
+                  }
+                  target="_blank"
+                  rel="noreferrer"
+                  className="px-3 py-1.5 rounded-lg bg-[#24A1DE] hover:bg-[#1E88E5] text-white font-bold text-xs flex items-center gap-1.5 transition shadow-xs"
+                >
+                  <Send className="w-3 h-3" />
+                  <span>{lang === 'am' ? 'በቴሌግራም አግኝ' : 'Chat on Telegram'}</span>
+                </a>
+              </div>
             </div>
           </div>
         </div>
 
         {/* Right Sidebar: Company Profile & Action Card */}
         <div className="space-y-6">
+          {/* Telegram Channel Community Card */}
+          <div className="bg-gradient-to-br from-[#24A1DE] to-blue-700 text-white rounded-2xl p-5 shadow-sm border border-sky-400">
+            <div className="flex items-center gap-3 mb-2">
+              <div className="w-10 h-10 rounded-xl bg-white/20 flex items-center justify-center font-black text-sm">
+                <Send className="w-5 h-5 text-white" />
+              </div>
+              <div>
+                <h4 className="font-extrabold text-sm">{lang === 'am' ? 'የዋስ ስራ ቴሌግራም ቻናል' : 'WAS Jobs Telegram Channel'}</h4>
+                <p className="text-[11px] text-sky-100">{lang === 'am' ? 'ዕለታዊ አዳዲስ የስራ ማስታወቂያዎች በስልክዎ' : 'Get instant daily vacancy notifications'}</p>
+              </div>
+            </div>
+            <a
+              href="https://t.me/wasjobs"
+              target="_blank"
+              rel="noreferrer"
+              className="mt-3 w-full py-2.5 rounded-xl bg-white text-sky-800 hover:bg-sky-50 font-black text-xs flex items-center justify-center gap-2 transition shadow-xs"
+            >
+              <Send className="w-3.5 h-3.5 text-[#24A1DE]" />
+              <span>{lang === 'am' ? 'ቻናሉን ይቀላቀሉ (@wasjobs)' : 'Join Telegram Channel (@wasjobs)'}</span>
+            </a>
+          </div>
           {/* Apply Card */}
           <div className="bg-gradient-to-br from-[#0B192C] to-slate-900 text-white rounded-2xl p-6 shadow-xl border border-slate-800">
             <h3 className="font-bold text-base text-white mb-2">

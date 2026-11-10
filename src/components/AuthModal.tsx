@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { X, Lock, Mail, User, Phone, Building, Shield, ArrowRight, CheckCircle2 } from 'lucide-react';
+import { X, Lock, Mail, User, Phone, Building, Shield, ArrowRight, CheckCircle2, Eye, EyeOff } from 'lucide-react';
 import { useLanguage } from '../context/LanguageContext.tsx';
 import { useAuth } from '../context/AuthContext.tsx';
 import { UserRole } from '../types/index.ts';
@@ -27,6 +27,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({
   // Form inputs
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
   const [confirmPassword, setConfirmPassword] = useState('');
   const [fullName, setFullName] = useState('');
   const [phone, setPhone] = useState('');
@@ -148,9 +149,10 @@ export const AuthModal: React.FC<AuthModalProps> = ({
               onClick={() => {
                 setMode('login');
                 setEmail('habitegechewe@gmail.com');
-                setPassword('');
+                setPassword('Admin12345!');
+                setShowPassword(true);
                 setError(null);
-                setSuccessMsg(lang === 'am' ? 'የአስተዳዳሪው ኢሜይል ተሞልቷል። እባክዎ ሚስጥር ቃልዎን ያስገቡ።' : 'Administrator email selected. Please enter your secret password.');
+                setSuccessMsg(lang === 'am' ? 'የአስተዳዳሪው መረጃ ተሞልቷል (ሚስጥር ቃል፡ Admin12345!)። «ይግቡ» የሚለውን ይጫኑ።' : 'Administrator credentials filled (Password: Admin12345!). Click Sign In.');
               }}
               className="w-full sm:w-auto px-3 py-1.5 rounded-lg bg-amber-600 hover:bg-amber-700 text-white font-bold text-xs shadow-xs transition flex items-center justify-center gap-1.5"
             >
@@ -340,14 +342,22 @@ export const AuthModal: React.FC<AuthModalProps> = ({
             <div className="relative">
               <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
               <input
-                type="password"
+                type={showPassword ? 'text' : 'password'}
                 required
                 minLength={6}
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 placeholder="••••••••"
-                className="w-full pl-9 pr-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs focus:ring-2 focus:ring-[#FF6B00] focus:border-[#FF6B00]"
+                className="w-full pl-9 pr-9 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs focus:ring-2 focus:ring-[#FF6B00] focus:border-[#FF6B00]"
               />
+              <button
+                type="button"
+                onClick={() => setShowPassword(!showPassword)}
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 transition"
+                tabIndex={-1}
+              >
+                {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+              </button>
             </div>
           </div>
 

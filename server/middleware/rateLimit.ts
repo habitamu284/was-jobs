@@ -195,10 +195,15 @@ export function recordFailedLogin(req: Request) {
  */
 export function resetFailedLogin(req: Request) {
   const email = (req.body?.email || '').toLowerCase().trim();
-  const accountKey = `account:${email}`;
-  if (email) {
-    delete store.failedLogins[accountKey];
-  }
+  resetFailedLoginByEmail(email);
+}
+
+export function resetFailedLoginByEmail(email: string) {
+  const normalized = email.toLowerCase().trim();
+  if (!normalized) return;
+  loadRateLimitsFromDisk();
+  const accountKey = `account:${normalized}`;
+  delete store.failedLogins[accountKey];
   saveRateLimitsToDisk();
 }
 

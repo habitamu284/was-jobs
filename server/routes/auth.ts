@@ -8,6 +8,7 @@ import {
   loginRateLimiter,
   recordFailedLogin,
   resetFailedLogin,
+  resetFailedLoginByEmail,
   registerRateLimiter,
   resetPasswordRateLimiter,
 } from '../middleware/rateLimit.ts';
@@ -209,6 +210,9 @@ router.post('/reset-password', resetPasswordRateLimiter, (req, res) => {
       target.updatedAt = new Date().toISOString();
     }
   });
+
+  // Immediately clear any lockouts for this account upon successful reset
+  resetFailedLoginByEmail(normalizedEmail);
 
   res.json({
     message: 'Password reset successfully. All active sessions have been invalidated. Please log in with your new password. የይለፍ ቃልዎ በተሳካ ሁኔታ ተቀይሯል። የቆዩ ክፍለ-ጊዜዎች በሙሉ ተሰርዘዋል፤ አሁን በአዲሱ የይለፍ ቃል መግባት ይችላሉ።',

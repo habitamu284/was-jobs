@@ -1,7 +1,0 @@
-User-agent: *
-Allow: /
-Allow: /api/jobs
-Disallow: /api/admin
-Disallow: /api/uploads/cvs/
-
-Sitemap: https://was-jobs.onrender.com/sitemap.xml

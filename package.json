@@ -1,8 +1,7 @@
-
 {
   "name": "was-jobs-ethiopia",
-  "private": true,
   "version": "1.0.0",
+  "private": true,
   "type": "module",
   "scripts": {
     "dev": "tsx server.ts",
@@ -15,6 +14,7 @@
   "dependencies": {
     "@google/genai": "^2.4.0",
     "@tailwindcss/vite": "^4.3.3",
+    "@vitejs/plugin-react": "^6.1.1",
     "bcryptjs": "^3.0.3",
     "dotenv": "^17.2.3",
     "esbuild": "^0.25.0",
@@ -26,7 +26,8 @@
     "react": "^19.0.1",
     "react-dom": "^19.0.1",
     "tsx": "^4.21.0",
-    "vite": "^8.3.0"
+    "vite": "^8.3.0",
+    "vite-plugin-pwa": "^2.0.0"
   },
   "devDependencies": {
     "@types/bcryptjs": "^2.4.6",
@@ -41,4 +42,3 @@
     "typescript": "^7.0.2"
   }
 }
-

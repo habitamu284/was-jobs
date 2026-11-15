@@ -1,0 +1,39 @@
+{
+  "packageId": "com.wasjobs.ethiopia",
+  "host": "was-jobs.onrender.com",
+  "name": "WAS Jobs Ethiopia - ዋስ ስራ",
+  "launcherName": "WAS Jobs",
+  "display": "standalone",
+  "themeColor": "#0B192C",
+  "themeColorDark": "#0B192C",
+  "navigationColor": "#0B192C",
+  "navigationColorDark": "#0B192C",
+  "navigationDividerColor": "#0B192C",
+  "navigationDividerColorDark": "#0B192C",
+  "backgroundColor": "#0B192C",
+  "enableNotifications": true,
+  "startUrl": "/",
+  "iconUrl": "https://was-jobs.onrender.com/pwa-512x512.png",
+  "maskableIconUrl": "https://was-jobs.onrender.com/pwa-maskable-512x512.png",
+  "splashScreenFadeOutDuration": 300,
+  "signingKey": {
+    "path": "./android.keystore",
+    "alias": "wasjobs"
+  },
+  "appVersionName": "1.0.0",
+  "appVersionCode": 1,
+  "shortcuts": [],
+  "generatorApp": "bubblewrap-cli",
+  "webManifestUrl": "https://was-jobs.onrender.com/manifest.webmanifest",
+  "fallbackType": "customtabs",
+  "features": {},
+  "alphaDependencies": {
+    "enabled": false
+  },
+  "enableSiteSettingsShortcut": true,
+  "isChromeOSOnly": false,
+  "isMetaQuest": false,
+  "fullScopeUrl": "https://was-jobs.onrender.com/",
+  "minSdkVersion": 21,
+  "orientation": "portrait"
+}

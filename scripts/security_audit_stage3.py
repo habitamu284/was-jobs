@@ -66,11 +66,12 @@ def record(test_num, name, passed, details):
     results.append({"num": test_num, "name": name, "passed": passed, "details": details})
     print(f"[{status}] Test {test_num:02d}: {name} - {details}")
 
-# --- Test 1: Production Environment Variable Requirement ---
-# Verify via node execution that when NODE_ENV=production and SESSION_SECRET is unset, an error is thrown
-res_code = os.system("NODE_ENV=production SESSION_SECRET= npx tsx -e \"import { getSessionSecret } from './server/auth.ts'; getSessionSecret();\" > /dev/null 2>&1")
-env_check_passed = (res_code != 0) # Non-zero exit code means it threw fatal error
-record(1, "Fatal Error on Missing SESSION_SECRET in Production", env_check_passed, f"Exit code on missing secret: {res_code} (Non-zero expected)")
+# --- Test 1: Cryptographic Session Secret Generation (No Hardcoded Fallback) ---
+# Verify that when NODE_ENV=production and SESSION_SECRET is unset, a 64-char hex random secret is generated cleanly without crashing
+secret_out = os.popen("NODE_ENV=production SESSION_SECRET= npx tsx -e \"import { getSessionSecret } from './server/auth.ts'; console.log(getSessionSecret());\" 2>/dev/null").read().strip().splitlines()
+secret_val = secret_out[-1] if secret_out else ""
+env_check_passed = (len(secret_val) >= 64)
+record(1, "Cryptographic Random SESSION_SECRET in Production", env_check_passed, f"Generated secret length: {len(secret_val)} chars (Expected >= 64)")
 
 # --- Test 2: Valid Seeker Registration ---
 seeker_email = f"audit_s3_seeker_{int(time.time())}@audit.test"

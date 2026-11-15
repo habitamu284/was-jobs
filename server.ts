@@ -66,6 +66,25 @@ async function startServer() {
     res.json({ status: 'ok', platform: 'WAS Jobs Ethiopia (ዋስ ስራ)', timestamp: new Date().toISOString() });
   });
 
+  // Unmatched API routes return clean JSON 404
+  app.use('/api', (_req, res) => {
+    res.status(404).json({ error: 'API endpoint not found. የጠየቁት አገልግሎት አልተገኘም።' });
+  });
+
+  // Global JSON error handler for API requests
+  app.use((err: any, req: express.Request, res: express.Response, next: express.NextFunction) => {
+    console.error('Unhandled server error:', err);
+    if (res.headersSent) {
+      return next(err);
+    }
+    if (req.path.startsWith('/api')) {
+      return res.status(err?.status || 500).json({
+        error: 'የሰርቨር ችግር አጋጥሟል። እባክዎ ትንሽ ቆይተው እንደገና ይሞክሩ። (Server error occurred)',
+      });
+    }
+    res.status(err?.status || 500).send('Internal Server Error');
+  });
+
   // Direct ZIP package download endpoint
   app.get('/download-zip', (_req, res) => {
     const publicZip = path.resolve(__dirname, 'public', 'was-jobs-ethiopia.zip');
@@ -108,6 +127,25 @@ async function startServer() {
   app.get('/robots.txt', (_req, res) => {
     res.type('text/plain');
     res.send(`User-agent: *\nAllow: /\nAllow: /api/jobs\nDisallow: /api/admin\nDisallow: /api/uploads/cvs/\n\nSitemap: https://was-jobs.onrender.com/sitemap.xml\n`);
+  });
+
+  // Android Digital Asset Links for Google Play TWA (.aab) full-screen verification
+  app.get('/.well-known/assetlinks.json', (_req, res) => {
+    const fingerprints = (process.env.ANDROID_SHA256_FINGERPRINT || '')
+      .split(',')
+      .map((s) => s.trim())
+      .filter(Boolean);
+
+    res.json([
+      {
+        relation: ['delegate_permission/common.handle_all_urls'],
+        target: {
+          namespace: 'android_app',
+          package_name: 'com.wasjobs.ethiopia',
+          sha256_cert_fingerprints: fingerprints,
+        },
+      },
+    ]);
   });
 
   // Frontend integration (Vite dev server or static build)

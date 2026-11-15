@@ -20,6 +20,7 @@ import {
 import { useLanguage } from '../context/LanguageContext.tsx';
 import { useAuth } from '../context/AuthContext.tsx';
 import { useNotifications } from '../context/NotificationContext.tsx';
+import { PWAInstallButton } from './PWAInstallButton.tsx';
 
 interface NavbarProps {
   activeTab: string;
@@ -204,6 +205,8 @@ export const Navbar: React.FC<NavbarProps> = ({
 
           {/* Right Action Buttons */}
           <div className="flex items-center gap-2 sm:gap-3">
+            <PWAInstallButton />
+
             {/* Language Switcher */}
             <button
               onClick={toggleLang}

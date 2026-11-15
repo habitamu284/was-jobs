@@ -7,31 +7,47 @@ import type { User, UserRole } from '../src/types/index.ts';
 
 const DATA_DIR = process.env.DATA_DIR || path.resolve(process.cwd(), 'data');
 const REVOKED_TOKENS_FILE = path.resolve(DATA_DIR, 'revoked_tokens.json');
+const SESSION_SECRET_FILE = path.resolve(DATA_DIR, '.session_secret');
 const TOKEN_MAX_AGE_MS = 7 * 24 * 60 * 60 * 1000; // 7 days token expiration
 
-let devSessionSecret: string | null = null;
+let cachedSessionSecret: string | null = null;
 
 /**
  * Returns the session signing secret.
- * In production: Strictly requires process.env.SESSION_SECRET.
- * In development: Generates an ephemeral cryptographic random 256-bit secret.
+ * Priority:
+ * 1. process.env.SESSION_SECRET (recommended for multi-instance production)
+ * 2. Persisted cryptographic 256-bit random secret in DATA_DIR/.session_secret
+ * 3. Ephemeral cryptographic random 256-bit secret (if disk write fails)
  * No hardcoded fallback secret is ever used!
  */
 export function getSessionSecret(): string {
-  if (process.env.SESSION_SECRET) {
-    return process.env.SESSION_SECRET;
+  if (process.env.SESSION_SECRET && process.env.SESSION_SECRET.trim().length >= 16) {
+    return process.env.SESSION_SECRET.trim();
   }
-  if (process.env.NODE_ENV === 'production') {
-    throw new Error(
-      '[FATAL SECURITY CONFIGURATION] SESSION_SECRET environment variable is missing in production. ' +
-      'WAS Jobs cannot start without a secure SESSION_SECRET configured in environment variables.'
-    );
+  if (cachedSessionSecret) {
+    return cachedSessionSecret;
   }
-  if (!devSessionSecret) {
-    devSessionSecret = crypto.randomBytes(32).toString('hex');
-    console.info('ℹ️ [SECURITY] Generated ephemeral random SESSION_SECRET for local development.');
+  try {
+    if (!fs.existsSync(DATA_DIR)) {
+      fs.mkdirSync(DATA_DIR, { recursive: true });
+    }
+    if (fs.existsSync(SESSION_SECRET_FILE)) {
+      const existing = fs.readFileSync(SESSION_SECRET_FILE, 'utf-8').trim();
+      if (existing.length >= 32) {
+        cachedSessionSecret = existing;
+        return cachedSessionSecret;
+      }
+    }
+    const generated = crypto.randomBytes(32).toString('hex');
+    fs.writeFileSync(SESSION_SECRET_FILE, generated, { encoding: 'utf-8', mode: 0o600 });
+    cachedSessionSecret = generated;
+    console.info('ℹ️ [SECURITY] Auto-generated & persisted 256-bit SESSION_SECRET in data directory.');
+    return cachedSessionSecret;
+  } catch {
+    cachedSessionSecret = crypto.randomBytes(32).toString('hex');
+    console.info('ℹ️ [SECURITY] Generated ephemeral 256-bit SESSION_SECRET in memory.');
+    return cachedSessionSecret;
   }
-  return devSessionSecret;
 }
 
 /**

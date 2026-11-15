@@ -93,7 +93,10 @@ async function parseJsonResponse(res: Response): Promise<{ ok: boolean; data: an
       setCompany(parsed.data.company || null);
       return { success: true };
     } catch (err: any) {
-      return { success: false, error: err.message || 'Network error' };
+      const msg = typeof navigator !== 'undefined' && !navigator.onLine
+        ? 'የኢንተርኔት ግንኙነትዎ ተቋርጧል። እባክዎ ዳታ ወይም Wi-Fi ያረጋግጡ።'
+        : 'የሰርቨር ግንኙነት ችግር አጋጥሟል። እባክዎ ኢንተርኔትዎን አረጋግጠው እንደገና ይሞክሩ።';
+      return { success: false, error: msg };
     }
   };
 
@@ -114,7 +117,10 @@ async function parseJsonResponse(res: Response): Promise<{ ok: boolean; data: an
       setCompany(parsed.data.company || null);
       return { success: true };
     } catch (err: any) {
-      return { success: false, error: err.message || 'Network error' };
+      const msg = typeof navigator !== 'undefined' && !navigator.onLine
+        ? 'የኢንተርኔት ግንኙነትዎ ተቋርጧል። እባክዎ ዳታ ወይም Wi-Fi ያረጋግጡ።'
+        : 'የሰርቨር ግንኙነት ችግር አጋጥሟል። እባክዎ ኢንተርኔትዎን አረጋግጠው እንደገና ይሞክሩ።';
+      return { success: false, error: msg };
     }
   };
 
@@ -135,7 +141,10 @@ async function parseJsonResponse(res: Response): Promise<{ ok: boolean; data: an
       setCompany(parsed.data.company || null);
       return { success: true };
     } catch (err: any) {
-      return { success: false, error: err.message || 'Network error' };
+      const msg = typeof navigator !== 'undefined' && !navigator.onLine
+        ? 'የኢንተርኔት ግንኙነትዎ ተቋርጧል። እባክዎ ዳታ ወይም Wi-Fi ያረጋግጡ።'
+        : 'የሰርቨር ግንኙነት ችግር አጋጥሟል። እባክዎ ኢንተርኔትዎን አረጋግጠው እንደገና ይሞክሩ።';
+      return { success: false, error: msg };
     }
   };
 

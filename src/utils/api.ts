@@ -17,7 +17,15 @@ export async function safeJsonFetch<T = any>(
       return { ok: true, data };
     }
 
-    // Response was not JSON (e.g. HTML 502/Cloud Run auth page)
+    // Response was not JSON (e.g. HTML 502/503 while server wakes up or 500 error)
+    if (res.status === 502 || res.status === 503 || res.status === 504) {
+      return {
+        ok: false,
+        data: null,
+        error: 'ሰርቨሩ እየነቃ ነው፤ እባክዎ 15 ሰከንድ ጠብቀው እንደገና ይሞክሩ። (Server is waking up, please wait a moment and retry.)',
+      };
+    }
+
     return {
       ok: false,
       data: null,

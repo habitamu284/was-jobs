@@ -15,6 +15,7 @@ import { EmployerDashboard } from './pages/EmployerDashboard.tsx';
 import { AdminDashboard } from './pages/AdminDashboard.tsx';
 import { UserProfile } from './pages/UserProfile.tsx';
 import { Job } from './types/index.ts';
+import { OfflineIndicator } from './components/OfflineIndicator.tsx';
 
 function AppContent() {
   const { lang, t } = useLanguage();
@@ -266,6 +267,9 @@ function AppContent() {
         onClose={() => setTrustModalOpen(false)}
         initialTab={trustModalTab}
       />
+
+      {/* Offline Connectivity Indicator */}
+      <OfflineIndicator />
     </div>
   );
 }
